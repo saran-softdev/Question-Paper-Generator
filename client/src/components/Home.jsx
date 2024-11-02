@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { XCircleIcon } from "@heroicons/react/20/solid";
@@ -18,16 +19,13 @@ const Home = () => {
   const [errors, setErrors] = useState({});
   const [pages, setPages] = useState([[]]); // Initialize with one empty page
   console.log("Global Pages: " + pages);
-
+  const navigate = useNavigate();
   const [currentPart, setCurrentPart] = useState({
     partName: "",
     marksPerQuestion: 0,
     maxQuestions: 0,
     questions: []
   });
-
-  console.log("formData", formData);
-  console.log("currentPart", currentPart);
 
   const [currentQuestion, setCurrentQuestion] = useState({
     text: "",
@@ -45,6 +43,17 @@ const Home = () => {
 
   const [editingIndex, setEditingIndex] = useState(null);
   const pdfRef = useRef();
+
+  useEffect(() => {
+    // Check if the auth token is missing
+    if (!localStorage.getItem("authToken")) {
+      navigate("/"); // Redirect to sign-in if token is not found
+    }
+  }, [navigate]);
+  const logout = () => {
+    localStorage.removeItem("authToken");
+    window.location.reload(); // Optionally, reload to redirect the user to the login page
+  };
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -129,7 +138,17 @@ const Home = () => {
 
   const handleEditQuestion = (partIndex, qIndex) => {
     const questionToEdit = formData.parts[partIndex].questions[qIndex];
-    setCurrentQuestion(questionToEdit);
+
+    if (questionToEdit.isEitherOr) {
+      setCurrentQuestion(questionToEdit.primary);
+      setCurrentAltQuestion(questionToEdit.alternate);
+      setIsEitherOr(true);
+    } else {
+      setCurrentQuestion(questionToEdit);
+      setCurrentAltQuestion({ text: "", bl: "", co: "", po: "" }); // Reset alternate question
+      setIsEitherOr(false);
+    }
+
     setEditingIndex(qIndex);
   };
 
@@ -283,6 +302,13 @@ const Home = () => {
       <h1 className="text-4xl font-extrabold text-center text-blue-900 mb-12 drop-shadow-lg">
         Question Paper Generator
       </h1>
+      {/* Logout Button */}
+      <button
+        onClick={logout}
+        className="absolute top-4 right-4 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-200 shadow-md"
+      >
+        Logout
+      </button>
 
       {Object.keys(errors).length > 0 && (
         <div className="rounded-md bg-red-50 p-4 mb-4">
@@ -411,13 +437,14 @@ const Home = () => {
             </span>
           </p>
 
-          <div className="flex gap-4 mb-4">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-4 mb-4">
             <input
               type="text"
               placeholder="Enter Question"
               name="text"
               value={currentQuestion.text}
               onChange={(e) => handleQuestionChange(e)}
+              className="flex-1 p-2 border rounded"
             />
             <input
               type="text"
@@ -425,6 +452,7 @@ const Home = () => {
               name="bl"
               value={currentQuestion.bl}
               onChange={(e) => handleQuestionChange(e)}
+              className="w-full sm:w-24 p-2 border rounded"
             />
             <input
               type="text"
@@ -432,6 +460,7 @@ const Home = () => {
               name="co"
               value={currentQuestion.co}
               onChange={(e) => handleQuestionChange(e)}
+              className="w-full sm:w-24 p-2 border rounded"
             />
             <input
               type="text"
@@ -439,6 +468,7 @@ const Home = () => {
               name="po"
               value={currentQuestion.po}
               onChange={(e) => handleQuestionChange(e)}
+              className="w-full sm:w-24 p-2 border rounded"
             />
 
             {isEitherOr && (
@@ -449,6 +479,7 @@ const Home = () => {
                   name="text"
                   value={currentAltQuestion.text}
                   onChange={(e) => handleQuestionChange(e, true)}
+                  className="flex-1 p-2 border rounded"
                 />
                 <input
                   type="text"
@@ -456,6 +487,7 @@ const Home = () => {
                   name="bl"
                   value={currentAltQuestion.bl}
                   onChange={(e) => handleQuestionChange(e, true)}
+                  className="w-full sm:w-24 p-2 border rounded"
                 />
                 <input
                   type="text"
@@ -463,6 +495,7 @@ const Home = () => {
                   name="co"
                   value={currentAltQuestion.co}
                   onChange={(e) => handleQuestionChange(e, true)}
+                  className="w-full sm:w-24 p-2 border rounded"
                 />
                 <input
                   type="text"
@@ -470,19 +503,20 @@ const Home = () => {
                   name="po"
                   value={currentAltQuestion.po}
                   onChange={(e) => handleQuestionChange(e, true)}
+                  className="w-full sm:w-24 p-2 border rounded"
                 />
               </>
             )}
 
             <button
               onClick={() => handleAddOrUpdateQuestion(partIndex)}
-              className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition duration-200 shadow-md hover:shadow-lg"
+              className="w-full sm:w-auto bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200 shadow-md hover:shadow-lg"
             >
               {editingIndex !== null ? "Update Question" : "Add Question"}
             </button>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mb-4">
             <label htmlFor="eitherOrToggle" className="text-gray-700">
               Add as Either/Or Question
             </label>
@@ -494,17 +528,18 @@ const Home = () => {
               className="w-5 h-5 text-green-500 focus:ring-green-500 rounded"
             />
           </div>
-          <ol className="list-decimal ml-6">
+
+          <ol className="list-decimal ml-6 space-y-2">
             {part.questions.map((q, qIndex) => (
               <li
                 key={qIndex}
-                className="mb-2 flex justify-between items-center"
+                className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2"
               >
-                <span>
+                <span className="flex-1">
                   {qIndex + 1}. {q.text} (BL: {q.bl}, CO: {q.co}, PO: {q.po})
                 </span>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 mt-2 sm:mt-0">
                   <button
                     onClick={() => handleEditQuestion(partIndex, qIndex)}
                     className="text-blue-600 hover:underline"
@@ -603,10 +638,10 @@ const Home = () => {
                                 __html: q.primary.text
                               }}
                             />
-                            <span>
+                            <span className="text-right font-bold">
                               {" "}
-                              (BL: {q.primary.bl}, CO: {q.primary.co}, PO:{" "}
-                              {q.primary.po})
+                              ( BL: {q.primary.bl}, CO: {q.primary.co}, PO:{" "}
+                              {q.primary.po} )
                             </span>
                           </p>
 
@@ -629,10 +664,10 @@ const Home = () => {
                                 __html: q.alternate.text
                               }}
                             />
-                            <span>
+                            <span className="text-right font-bold">
                               {" "}
-                              (BL: {q.alternate.bl}, CO: {q.alternate.co}, PO:{" "}
-                              {q.alternate.po})
+                              ( BL: {q.alternate.bl}, CO: {q.alternate.co}, PO:{" "}
+                              {q.alternate.po} )
                             </span>
                           </p>
                         </>
@@ -640,9 +675,9 @@ const Home = () => {
                         <p>
                           <span className="font-bold">{currentNumber}. </span>
                           <span dangerouslySetInnerHTML={{ __html: q.text }} />
-                          <span>
+                          <span className="text-right font-bold">
                             {" "}
-                            (BL: {q.bl}, CO: {q.co}, PO: {q.po})
+                            ( BL: {q.bl}, CO: {q.co}, PO: {q.po} )
                           </span>
                         </p>
                       )}

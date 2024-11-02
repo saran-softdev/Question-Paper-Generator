@@ -52,7 +52,7 @@ const signin = async (req, res) => {
 
     // Generate a token (optional)
     const token = jwt.sign({ id: user._id }, "QNPAPER", {
-      expiresIn: "1h"
+      expiresIn: "3m"
     });
 
     res.status(200).json({ message: "Sign-in successful", token });
