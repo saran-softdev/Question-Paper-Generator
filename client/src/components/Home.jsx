@@ -618,6 +618,16 @@ const Home = () => {
                   </strong>
                 </p>
               </div>
+
+              {/* BL, CO, PO Header */}
+              <div className="flex justify-between mb-2 font-bold">
+                <span className="w-3/4">Questions</span>
+                <div className="flex w-1/4 justify-between">
+                  <span>BL</span>
+                  <span>CO</span>
+                  <span>PO</span>
+                </div>
+              </div>
               <div>
                 {part.questions.map((q, qIndex) => {
                   const currentNumber = questionNumber; // Store the current question number for display
@@ -626,60 +636,67 @@ const Home = () => {
                   questionNumber++;
 
                   return (
-                    <div key={qIndex} className="mb-4">
+                    <div
+                      key={qIndex}
+                      className="mb-4 flex justify-between items-start flex-col"
+                    >
                       {q.isEitherOr ? (
                         <>
-                          <p>
-                            <span className="font-bold">
-                              {currentNumber}) A.{" "}
-                            </span>
-                            <span
-                              dangerouslySetInnerHTML={{
-                                __html: q.primary.text
-                              }}
-                            />
-                            <span className="text-right font-bold">
-                              {" "}
-                              ( BL: {q.primary.bl}, CO: {q.primary.co}, PO:{" "}
-                              {q.primary.po} )
-                            </span>
-                          </p>
+                          <div className="flex justify-between w-full">
+                            <p>
+                              <span className="font-bold">
+                                {currentNumber}) A.{" "}
+                              </span>
+                              <span
+                                dangerouslySetInnerHTML={{
+                                  __html: q.primary.text
+                                }}
+                              />
+                            </p>
+                            <div className="flex w-1/4 justify-between font-bold text-right">
+                              <span>{q.primary.bl}</span>
+                              <span>{q.primary.co}</span>
+                              <span>{q.primary.po}</span>
+                            </div>
+                          </div>
 
-                          <div
-                            style={{
-                              textAlign: "center",
-                              fontWeight: "bold",
-                              margin: "5px 0"
-                            }}
-                          >
+                          {/* Centered "OR" */}
+                          <div className="w-full text-center font-bold my-2">
                             OR
                           </div>
 
-                          <p>
-                            <span className="font-bold">
-                              {currentNumber}) B.{" "}
-                            </span>
-                            <span
-                              dangerouslySetInnerHTML={{
-                                __html: q.alternate.text
-                              }}
-                            />
-                            <span className="text-right font-bold">
-                              {" "}
-                              ( BL: {q.alternate.bl}, CO: {q.alternate.co}, PO:{" "}
-                              {q.alternate.po} )
-                            </span>
-                          </p>
+                          <div className="flex justify-between w-full">
+                            <p>
+                              <span className="font-bold">
+                                {currentNumber}) B.{" "}
+                              </span>
+                              <span
+                                dangerouslySetInnerHTML={{
+                                  __html: q.alternate.text
+                                }}
+                              />
+                            </p>
+                            <div className="flex w-1/4 justify-between font-bold text-right">
+                              <span>{q.alternate.bl}</span>
+                              <span>{q.alternate.co}</span>
+                              <span>{q.alternate.po}</span>
+                            </div>
+                          </div>
                         </>
                       ) : (
-                        <p>
-                          <span className="font-bold">{currentNumber}. </span>
-                          <span dangerouslySetInnerHTML={{ __html: q.text }} />
-                          <span className="text-right font-bold">
-                            {" "}
-                            ( BL: {q.bl}, CO: {q.co}, PO: {q.po} )
-                          </span>
-                        </p>
+                        <div className="flex justify-between w-full">
+                          <p>
+                            <span className="font-bold">{currentNumber}. </span>
+                            <span
+                              dangerouslySetInnerHTML={{ __html: q.text }}
+                            />
+                          </p>
+                          <div className="flex w-1/4 justify-between font-bold text-right">
+                            <span>{q.bl}</span>
+                            <span>{q.co}</span>
+                            <span>{q.po}</span>
+                          </div>
+                        </div>
                       )}
                     </div>
                   );
